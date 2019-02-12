@@ -68,7 +68,7 @@ class InventoryEnv:
 		self.df['Date'] = pd.to_datetime(self.df['Date'])
 		self.product_code_index_mapping = pd.read_csv('Top 100.csv')
 		self.INV_L, self.INV_H = 0, 90000000
-		self.N_WHOUSES, self.N_PRODUCTS = 1, 2
+		self.N_WHOUSES, self.N_PRODUCTS = 2, 1
 		self.action_space_low, self.action_space_high = 0, 90000000
 
 		self.observation_space = Space(self.N_WHOUSES * self.N_PRODUCTS + 1, 1, self.INV_L, self.INV_H)
@@ -85,7 +85,7 @@ class InventoryEnv:
 		self.SP_VECTOR = (1. + self.PROFIT_FACTOR) * self.CP_VECTOR
 
 		self.CH = 1
-		self.LEN_MONTH = 30
+		self.LEN_MONTH = 1#30
 		self.DEMAND_STD_DEV = 1000
 		self.whse_mapping = {'Whse_A':0, 'Whse_C':1,'Whse_J':2,'Whse_S':3}
 
@@ -123,8 +123,9 @@ class InventoryEnv:
 		self.revenue_gen = 0
 		
 		# demand_matrix = np.random.normal(100,1, size = (1,1))
-		demand_matrix = np.random.normal(100, 10, size = (1,1))
+		demand_matrix = np.random.normal(100, 10, size = (self.N_WHOUSES,self.N_PRODUCTS))
 		demand_matrix.astype(np.int32)
+		# print self.available
 		# print demand_matrix
 		# temp_demand_s = demand_matrix.copy() #to store those item demands that were fulfilled
 		# temp_demand_b = demand_matrix.copy() #to store those item demands that were not fulfilled
@@ -175,6 +176,9 @@ class InventoryEnv:
 	def get_order_cost(self, action):
 		cost = 0
 		total_per_product_amounts = action.sum(axis = 0)
+		# print action.shape
+		# print total_per_product_amounts.shape
+		# exit()
 		total_per_product_amounts = np.reshape(total_per_product_amounts, (total_per_product_amounts.shape[0], 1))
 		cost = np.dot(self.CP_VECTOR.T, total_per_product_amounts)
 		cost = np.squeeze(cost)
@@ -205,6 +209,7 @@ class InventoryEnv:
 		self.holding_cost = self.get_holding_cost()
 		self.order_cost = self.get_order_cost(action)
 		self.reward = self.backorder_cost + self.holding_cost*0.01 + self.revenue_gen + self.order_cost*0.1
+		# self.reward = self.backorder_cost + self.holding_cost*0 + self.revenue_gen + self.order_cost*0
 		
 		# print self.backorder_cost, self.revenue_gen
 		
